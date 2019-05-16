@@ -47,7 +47,7 @@ def writeCSV(allArticles, allTopics, numArticles, dir):
         writeObj = csv.DictWriter(file, fieldnames=fields,lineterminator='\n')
 
         for article, topic in zip(allArticles, allTopics):
-                writeObj.writerow({'date':'{}'.format(currDate), 'dir':'{}'.format(dir), 'articleTitle':'{}'.format(article.text), 'articleTopic':'{}'.format(topic)})
+            writeObj.writerow({'date':'{}'.format(currDate),'dir':'{}'.format(dir),'articleTitle':'{}'.format(article.text), 'articleTopic':'{}'.format(topic)})
 
 
 def getInfo(dir):
@@ -91,7 +91,6 @@ def main():
     time.sleep(5)
     # Connected World
     getInfo('business-45489065')
-    time.sleep(5)
     
     print("Done!")
 
