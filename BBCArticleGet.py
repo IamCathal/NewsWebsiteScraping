@@ -11,7 +11,7 @@ currDate = '{}/{}/{}'.format(date.day,date.month,date.year)
 
 def getTitle(dir):
     try:
-        html = urlopen('https://www.bbc.com/news/'+dir)
+        html = urlopen('http://feeds.bbci.co.uk/news/'+dir+'/rss.xml')
     except HTTPError as err:
         print(err)
         return None
@@ -23,52 +23,33 @@ def getTitle(dir):
         title = htmlObj.title.text
         print('Downloaded articles from '+title)
 
+
 def getArticleTitles(dir):
-        html = urlopen('https://www.bbc.com/news/'+dir)
+        html = urlopen('http://feeds.bbci.co.uk/news/'+dir+'/rss.xml')
         htmlObj = BeautifulSoup(html, features="html.parser")
 
-        articles = htmlObj.findAll("span", re.compile("(title-link__title-text)+"))
+        articles = list()
+        articles = htmlObj.findAll("li")
         return articles
+      
 
-def getArticleTopics(dir):
-        html = urlopen('https://www.bbc.com/news/'+dir)
-        htmlObj = BeautifulSoup(html, features="html.parser")
-        articlesText = list()
-        articles = htmlObj.findAll("li", "mini-info-list__item mini-info-list__item--section")
-        #for elem in articles:
-        #    print(elem)
-        for elem in articles: 
-            articlesText.append(elem.text[16:]) 
-        return articlesText
-
-def writeCSV(allArticles, allTopics, numArticles, dir):
-    with open('info.csv', 'a', encoding="utf-8") as file:
-        fields = ['date', 'dir', 'articleTitle','articleTopic']
+def writeCSV(allArticles, dir):
+    with open('infocheck.csv', 'a', encoding="utf-8") as file:
+        fields = ['date', 'dir', 'articleTitle']
         writeObj = csv.DictWriter(file, fieldnames=fields,lineterminator='\n')
 
-        for article, topic in zip(allArticles, allTopics):
-            writeObj.writerow({'date':'{}'.format(currDate),'dir':'{}'.format(dir),'articleTitle':'{}'.format(article.text), 'articleTopic':'{}'.format(topic)})
+        for article in allArticles:
+            writeObj.writerow({'date':'{}'.format(currDate),'dir':'{}'.format(dir),'articleTitle':'{}'.format(article)})
 
 
 def getInfo(dir):
 
-    articleCount = 0
-
     getTitle(dir)
+    
     articleTitles = getArticleTitles(dir)
-    articleTopics = getArticleTopics(dir)
-    for article in articleTitles:
-        articleCount += 1
 
-    writeCSV(articleTitles, articleTopics, articleCount, dir)
+    writeCSV(articleTitles, dir)
 
-def checkLink(url):
-    try:
-        html = urlopen('https://www.bbc.com/news/'+url)
-    except HTTPError as err:
-        return None
-        exit()
-    else: getInfo(url)
 
 def main():
     getInfo('england')
