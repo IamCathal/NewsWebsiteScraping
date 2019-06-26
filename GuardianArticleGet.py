@@ -60,7 +60,7 @@ def getKeywords():
 
 
 def writeCSV(allTitles, allKeywords, date):
-    with open('guardianInfo.csv', 'w', encoding='utf-8') as file:
+    with open('guardianInfo.csv', 'a', encoding='utf-8') as file:
         i = 0
         fields = ['date','keywordsArr', 'articleTitle']
         writeObj = csv.DictWriter(file, fieldnames=fields, delimiter=',',lineterminator='\n')
