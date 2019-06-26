@@ -49,7 +49,7 @@ def writeCSV(articleList, dir, invalid):
             writeObj = csv.DictWriter(file, fieldnames=fields,lineterminator='\n')
 
             for article in articleList:
-                writeObj.writerow({'date':'{}'.format(currDate),'dir':'{}'.format(dir),'articleTitle':'{}'.format(article)})
+                writeObj.writerow({'date':'{}'.format(currDate),'dir':'{}'.format(dir[8:]),'articleTitle':'{}'.format(article)})
 
 
 def scrape(dir):
