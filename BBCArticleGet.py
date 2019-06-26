@@ -38,14 +38,14 @@ def getArticles(dir):
 
 def writeCSV(articleList, dir, invalid):
     if invalid:
-        with open('errorLog.csv', 'a', encoding="utf-8") as file:
+        with open('BBCerrorLog.csv', 'a', encoding="utf-8") as file:
             fields = ['date', 'dir', 'articleTitle']
             writeObj = csv.DictWriter(file, fieldnames=fields,lineterminator='\n')
 
             for article in articleList:
                 writeObj.writerow({'date':'{}'.format(currDate),'dir':'{}'.format(dir),'articleTitle':'{}'.format(article)})
     else:
-        with open('infoXML.csv', 'a', encoding="utf-8") as file:
+        with open('BBCinfoXML.csv', 'a', encoding="utf-8") as file:
             fields = ['date', 'dir', 'articleTitle']
             writeObj = csv.DictWriter(file, fieldnames=fields,lineterminator='\n')
 
