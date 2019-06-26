@@ -12,7 +12,7 @@ date = datetime.datetime.now()
 currDate = '{}/{}/{}'.format(date.day,date.month,date.year)
 random.seed(datetime.datetime.now())
 
-articleURLs = ('worfld','uk','business','politices','health',
+articleURLs = ('world','uk','business','politics','health',
 'education','science_and_environment','technology','entertainment_and_arts',
 'world/africa','world/asia','world/europe','world/latin_america','world/middle_east',
 'world/us_and_canada','england','northern_ireland','scotland','wales')
