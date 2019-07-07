@@ -84,15 +84,15 @@ def getArticles(dir, website):
 
 def writeCSV(articleList, dir, invalid, website):
     if invalid:
-        with open('{}errorLog.csv'.format(website), 'a', encoding="utf-8") as file:
-            fields = ['date', 'dir', 'articleTitle']
+        with open('errorLog.csv', 'a', encoding="utf-8") as file:
+            fields = ['date', 'website', 'dir', 'articleTitle']
             writeObj = csv.DictWriter(file, fieldnames=fields,lineterminator='\n')
 
             for article in articleList:
-                writeObj.writerow({'date':'{}'.format(currDate),'dir':'{}'.format(dir),'articleTitle':'{}'.format(article)})
+                writeObj.writerow({'date':'{}'.format(currDate),'website':'{}'.format(website), 'dir':'{}'.format(dir),'articleTitle':'{}'.format(article)})
     else:
         with open('{}infoXML.csv'.format(website), 'a', encoding="utf-8") as file:
-            fields = ['date', 'dir', 'articleTitle']
+            fields = ['date', 'website', 'dir', 'articleTitle']
             writeObj = csv.DictWriter(file, fieldnames=fields,lineterminator='\n')
 
             for article in articleList:
@@ -101,13 +101,13 @@ def writeCSV(articleList, dir, invalid, website):
 
 def writeGuardianCSV(allTitles, allKeywords, date, invalid):
     if invalid:
-        with open('guardianErrorLog.csv', 'a', encoding='utf-8') as file:
+        with open('errorLog.csv', 'a', encoding='utf-8') as file:
             i = 0
-            fields = ['date','keywordsArr', 'articleTitle']
+            fields = ['date', 'website', 'keywordsArr', 'articleTitle']
             writeObj = csv.DictWriter(file, fieldnames=fields, delimiter=',',lineterminator='\n')
 
             for title, keywords in zip(allTitles, allKeywords):
-                writeObj.writerow({'date':'{}'.format(currDate),'keywordsArr':'{}'.format(keywords),'articleTitle':'{}'.format(title)})
+                writeObj.writerow({'date':'{}'.format(currDate), 'website':'{}'.format(website), 'keywordsArr':'{}'.format(keywords),'articleTitle':'{}'.format(title)})
                 i += 1
     else:
         with open('guardianInfoXML.csv', 'a', encoding='utf-8') as file:
@@ -135,6 +135,8 @@ def scrape(dir, website):
             badscrape.append(badscrapeMsg)
             writeCSV(badscrape, dir, 1, website)
             print('############ Failed to download articles from section: {} ############ '.format(dir))
+    # If scraping from the guardian, slightly different format
+    # due to the keywords list used
     if dir == 'titles':
         titlesList = getArticles('titles', 'guardian')
         return titlesList
