@@ -18,12 +18,14 @@ BBCArticleURLs = ('world','uk','business','politics','health',
 'world/africa','world/asia','world/europe','world/latin_america','world/middle_east',
 'world/us_and_canada','england','northern_ireland','scotland','wales')
 
-# Directories for the BBC news webpages I'm interested in
-CNNarticleURLs = ('edition','edition_world','edition_africa','edition_americas',
+# Directories for the CNN news webpages I'm interested in
+CNNArticleURLs = ('edition','edition_world','edition_africa','edition_americas',
 'edition_asia','edition_europe','edition_meast','edition_us','money_news_international',
 'edition_technology','edition_space','edition_entertainment','edition_sport',
 'edition_football','edition_golf','edition_motorsport','edition_tennis')
 
+# Directories for the CNN news webpages I'm interested in
+RTArticleURLs = ('news', 'uk', 'usa', 'sport', 'russia', 'business')
 
 def getArticles(dir, website):
     try:
@@ -31,6 +33,8 @@ def getArticles(dir, website):
             tree = ET.parse(source=urllib.request.urlopen('http://feeds.bbci.co.uk/news/'+dir+'/rss.xml'))
         elif website == 'CNN':
             tree = ET.parse(source=urllib.request.urlopen('http://rss.cnn.com/rss/'+dir+'.rss'))
+        elif website == 'RT':
+            tree = ET.parse(source=urllib.request.urlopen('https://www.rt.com/rss/'+dir))
         else:
             tree = ET.parse(source=urllib.request.urlopen('https://www.theguardian.com/sitemaps/news.xml'))
     except HTTPError as err:
@@ -42,20 +46,13 @@ def getArticles(dir, website):
         # Gets the xml tree as an object which
         # is then used to extract the articles
         root = tree.getroot()
-        if website == 'BBC':
+        if website != 'guardian':
             allArticles = list()
+            # TODO: fix issue with filtering bad titles
+            # e.g 'RT UK News' or 'CNN.com - RSS' etc
             for elem in root.iter('title'):
                 allArticles.append(elem.text)
             return allArticles
-          
-        elif website == 'CNN':
-            allArticles = list()
-            for elem in root.iter('title'):
-                # TODO: fix issue with filtering bad titles
-                # if not re.match('(CNN)+', elem.text):
-                allArticles.append(elem.text)
-            return allArticles
-
         else:
             i = 0
             if dir == 'titles':
@@ -92,7 +89,7 @@ def writeCSV(articleList, dir, invalid, website):
                 writeObj.writerow({'date':'{}'.format(currDate),'website':'{}'.format(website), 'dir':'{}'.format(dir),'articleTitle':'{}'.format(article)})
     else:
         with open('{}infoXML.csv'.format(website), 'a', encoding="utf-8") as file:
-            fields = ['date', 'website', 'dir', 'articleTitle']
+            fields = ['date', 'dir', 'articleTitle']
             writeObj = csv.DictWriter(file, fieldnames=fields,lineterminator='\n')
 
             for article in articleList:
@@ -125,9 +122,9 @@ def scrape(dir, website):
         allArticles = getArticles(dir, website)
         if allArticles != None:
             writeCSV(allArticles, dir, 0, website)
-            if website == 'BBC':
+            if website == 'BBC' or 'guardian' or 'RT':
                 print('Downloaded articles from section: {} - {}'.format(website, dir))
-            else:
+            elif website == 'CNN':
                 print('Downloaded articles from section: {} - {}'.format(website, dir[8:]))
         else:
             badscrapeMsg = 'Error could not scrape from section: {}'.format(dir)
@@ -157,6 +154,12 @@ def CNNControl():
         time.sleep(random.random())
 
 
+def RTControl():
+    for target in RTArticleURLs:
+        scrape(target, 'RT')
+        time.sleep(random.random())
+
+
 def guardianControl():
     titlesList = scrape('titles', 'guardian')
     keywordsList = scrape('keywords', 'guardian')
@@ -171,6 +174,7 @@ def main():
     threading.Thread(target=BBCControl).start()
     threading.Thread(target=CNNControl).start()
     threading.Thread(target=guardianControl).start()
+    threading.Thread(target=RTControl).start()
  
    
 if __name__ == '__main__':
