@@ -72,7 +72,11 @@ def getArticles(dir, website):
 
                 for elem in root.iter('{http://www.google.com/schemas/sitemap-news/0.9}keywords'):
                     keywordString = elem.text
-                    tempKeywords = keywordString.split(',')
+                    try:
+                        tempKeywords = keywordString.split(',')
+                    except AttributeError as err:
+                        print('Guardian article {} had no keywords'.format(i))
+                        tempKeywords = ['no keywords']
                     allKeywords.append(tempKeywords)
                     i += 1
                 print('{} article keyword lists scraped'.format(i))
@@ -149,7 +153,7 @@ def BBCControl():
 
 
 def CNNControl():
-    for target in CNNarticleURLs:
+    for target in CNNArticleURLs:
         scrape(target, 'CNN')
         time.sleep(random.random())
 
