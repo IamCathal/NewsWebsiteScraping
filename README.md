@@ -1,10 +1,19 @@
-# BBC News Article Scraper
+# News Article Scraper
 
-This script scrapes article titles and they keyword tags associated with the articles and compiles them into their respective csv files. All modules used are taken from the standard python library.
+I wrote this script as a means of getting my own dataset of article titles and their subjects from a handful of different news outlets.
 
 ### Where does the script get it's articles from?
 
-The script takes all articles from the RSS feeds of the Guardian, BBC and CNN. I might add more websites in the future if I have the time
+The script takes all articles from the RSS feeds of the Guardian, BBC, RT and CNN. I might add more websites in the future if I have the time
+
+### Go vs Python
+
+I initially wrote this script in python because it was the most straight forward way of doing it at the time. However more recently having started to pick up go I've been curious as to how much faster it can do the same task. Go is a compiled language so it would have an inherant advantage but I just wanted to rub it in. I timed the execution of the scripts and heres the averages of the time taken to run the script on both python and go.
+Go | Python
+------------ | -------------
+1.2s | 12.8s
+
+So, yeah. ❤️ Go ❤️
 
 ### What is the point of this?
 
