@@ -48,6 +48,16 @@ type Item struct {
 	Description string   `xml:"description"`
 }
 
+func logCall(site string, currPage, totalPages int, section string) {
+	fmt.Printf("[%s][%d/%d]\t%s\n", site, currPage, totalPages, section)
+}
+
+func checkErr(err error) {
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+
 func getPage(feedUrl string, section string, siteName string, successCount *int, linesWritten *int) {
 	// First see if the response header isn't a 404
 	res, err := http.Head(feedUrl)
@@ -62,9 +72,7 @@ func getPage(feedUrl string, section string, siteName string, successCount *int,
 		log.Fatal(err)
 	}
 	wholeXML, err := ioutil.ReadAll(res.Body)
-	if err != nil {
-		log.Fatal("Error putting file into buffer\n")
-	}
+	checkErr(err)
 
 	if siteName == "BBC" {
 		var BBCItemsStruct Items
@@ -72,7 +80,8 @@ func getPage(feedUrl string, section string, siteName string, successCount *int,
 		lines := writeCSV("BBC", section, BBCItemsStruct)
 		*linesWritten += lines
 		*successCount++
-		fmt.Printf("[BBC][%d/19]\t%s\n", *successCount, section)
+		go logCall("BBC", *successCount, 19, section)
+		// fmt.Printf("[BBC][%d/19]\t%s\n", *successCount, section)
 
 	} else if siteName == "CNN" {
 		var CNNItemsStruct Items
@@ -80,7 +89,8 @@ func getPage(feedUrl string, section string, siteName string, successCount *int,
 		lines := writeCSV("CNN", section, CNNItemsStruct)
 		*linesWritten += lines
 		*successCount++
-		fmt.Printf("[CNN][%d/17]\t%s\n", *successCount, section)
+		go logCall("CNN", *successCount, 17, section)
+		// fmt.Printf("[CNN][%d/17]\t%s\n", *successCount, section)
 
 	} else if siteName == "RT" {
 		var RTItemsStruct RTItems
@@ -95,7 +105,8 @@ func getPage(feedUrl string, section string, siteName string, successCount *int,
 		xml.Unmarshal(wholeXML, GuardianItemsStruct)
 		lines := writeGuardianCSV("guardian", GuardianItemsStruct)
 		*linesWritten = lines
-		fmt.Printf("[Guardian]\t%s\n", section)
+		go logCall("Guardian", 1, 1, section)
+		// fmt.Printf("[Guardian]\t%s\n", section)
 
 	}
 }
@@ -114,7 +125,6 @@ func writeGuardianCSV(siteName string, correctStruct *GuardianItems) int {
 	}
 	csvWriter := csv.NewWriter(csvFile)
 	defer csvWriter.Flush()
-	fmt.Printf("[Guardian]\t%d articles scraped\n", len(correctStruct.Titles))
 
 	for i := 0; i < len(correctStruct.Titles); i++ {
 		if len(correctStruct.Keywords[i].Data) < 1 {
@@ -122,9 +132,7 @@ func writeGuardianCSV(siteName string, correctStruct *GuardianItems) int {
 		}
 		res := []string{timeString, "guardian", strings.Trim(correctStruct.Titles[i].Data, "{}\n"), strings.Trim(correctStruct.Keywords[i].Data, "{}\n")}
 		err := csvWriter.Write(res)
-		if err != nil {
-			log.Fatal(err)
-		}
+		checkErr(err)
 	}
 	linesWritten := len(correctStruct.Titles)
 	return linesWritten
@@ -140,9 +148,7 @@ func writeRTCSV(siteName string, section string, correctStruct RTItems) int {
 
 	csvFile, err := os.OpenFile(writeTo, os.O_APPEND|os.O_CREATE|os.O_WRONLY, os.ModeAppend)
 	defer csvFile.Close()
-	if err != nil {
-		log.Fatal(err)
-	}
+	checkErr(err)
 	csvWriter := csv.NewWriter(csvFile)
 	defer csvWriter.Flush()
 
@@ -171,9 +177,7 @@ func writeCSV(siteName string, section string, correctStruct Items) int {
 
 	csvFile, err := os.OpenFile(writeTo, os.O_APPEND|os.O_CREATE|os.O_WRONLY, os.ModeAppend)
 	defer csvFile.Close()
-	if err != nil {
-		log.Fatal(err)
-	}
+	checkErr(err)
 	csvWriter := csv.NewWriter(csvFile)
 	defer csvWriter.Flush()
 
@@ -190,15 +194,11 @@ func writeCSV(siteName string, section string, correctStruct Items) int {
 			if len(descString) < 1 {
 				res := []string{timeString, section, correctStruct.Items[i].Title, "nothing"}
 				err := csvWriter.Write(res)
-				if err != nil {
-					log.Fatal("Can't write to file", err)
-				}
+				checkErr(err)
 			} else {
 				res := []string{timeString, section, correctStruct.Items[i].Title, descString}
 				err := csvWriter.Write(res)
-				if err != nil {
-					log.Fatal("Can't write to file", err)
-				}
+				checkErr(err)
 			}
 		}
 	}
@@ -210,13 +210,10 @@ func writeErrorLog(section string, siteName string, feedUrl string, failMessage 
 	currTime := time.Now()
 	timeString := fmt.Sprintf("%d/%d/%d", currTime.Day(), currTime.Month(), currTime.Year())
 	errorMessage := ""
-	fmt.Printf("%s/%s/%s\n", section, siteName, failMessage)
 
 	csvFile, err := os.OpenFile("errorLog.csv", os.O_APPEND|os.O_CREATE|os.O_WRONLY, os.ModeAppend)
 	defer csvFile.Close()
-	if err != nil {
-		log.Fatal(err)
-	}
+	checkErr(err)
 	csvWriter := csv.NewWriter(csvFile)
 	defer csvWriter.Flush()
 	if failMessage == "get" {
@@ -227,9 +224,7 @@ func writeErrorLog(section string, siteName string, feedUrl string, failMessage 
 
 	res := []string{timeString, siteName, section, feedUrl, errorMessage}
 	err = csvWriter.Write(res)
-	if err != nil {
-		log.Fatal("Error writing to errorLog.csv. This is very bad")
-	}
+	checkErr(err)
 }
 
 func scrapeBBC(id int, waitG *sync.WaitGroup, linesWritten *int) {
@@ -298,21 +293,21 @@ func main() {
 	// Uses go routines to achieve
 	// faster scraping times overall
 	var waitG sync.WaitGroup
-	waitG.Add(1)
+	waitG.Add(4)
+
 	BBCLines := 0
-	go scrapeBBC(1, &waitG, &BBCLines)
-	waitG.Add(1)
 	CNNLines := 0
-	go scrapeCNN(1, &waitG, &CNNLines)
-	waitG.Add(1)
 	GuardianLines := 0
-	scrapeGuardian(1, &waitG, &GuardianLines)
-	waitG.Add(1)
 	RTLines := 0
-	scrapeRT(1, &waitG, &RTLines)
+
+	go scrapeBBC(1, &waitG, &BBCLines)
+	go scrapeCNN(1, &waitG, &CNNLines)
+	go scrapeGuardian(1, &waitG, &GuardianLines)
+	go scrapeRT(1, &waitG, &RTLines)
 
 	// Once all go routines are completed, continue
 	waitG.Wait()
+
 	totalLines := BBCLines + CNNLines + RTLines + GuardianLines
 	fmt.Printf("=======================================\nLines scraped:\n")
 	fmt.Printf("BBC\t\t%d\nCNN\t\t%d\nRT\t\t%d\nGuardian\t%d\nTotal\t\t%d\n=======================================\n", BBCLines, CNNLines, RTLines, GuardianLines, totalLines)
